@@ -5,7 +5,7 @@ const cookieParser=require('cookie-parser');
 const session=require('express-session');
 const mongoose=require('mongoose');
 const passport=require('passport');
-const MongoStore=require('connect-mongo')(session); // allo us to save session in mongodb so when we refresh our page session is saved
+const MongoStore=require('connect-mongo')(session); // allow us to save session in mongodb so when we refresh our page session is saved
 const flash=require('express-flash');
 
 var app=express();
@@ -44,8 +44,10 @@ app.use(passport.session());
 
 
 var main = require('./controllers/user');
+var api = require('./controllers/api');
 
 app.use('/', main);
+app.use('/api', api);
 
 app.listen(8081,function () {
     console.log('server started');
