@@ -28,11 +28,11 @@ module.exports = {
             newUser.save(function (err) {
                 if (err) return next(err);
 
-                return {
+                res.json({
                     success: true,
                     data: newUser,
                     token: generateToken(newUser, 'School')
-                };
+                });
             });
         });
     },
@@ -52,12 +52,12 @@ module.exports = {
                 return next(new Error("Incorrect Password"));
             }
 
-            return {
+            res.json({
                 success: true,
                 data: user,
                 token: generateToken(user, 'School')
 
-            };
+            });
 
         });
     },
@@ -77,12 +77,12 @@ module.exports = {
                 return next(new Error("Incorrect Password"));
             }
 
-            return {
+            res.json({
                 success: true,
                 data: user,
                 token: generateToken(user, 'Student')
 
-            };
+            });
 
         });
     },
@@ -91,25 +91,30 @@ module.exports = {
     teacherLogin: (req, res, next) => {
 
         let email = req.body.email;
-
+        console.log(req.body);
         Teacher.findOne({'email': email}, function (err, user) {
             if (err) {
                 return next(err);
             }
+            console.log(req.body);
+
             if (!user) {
                 return next(new Error("User Email Not Found"));
             }
+            console.log(req.body);
+
             if (!user.validPassword(req.body.password)) {
                 return next(new Error("Incorrect Password"));
             }
 
+            console.log(req.body);
 
-            return {
+            res.json({
                 success: true,
                 data: user,
                 token: generateToken(user, 'Teacher')
 
-            };
+            });
         });
     }
 
