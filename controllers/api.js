@@ -2,8 +2,14 @@ const express = require('express');
 const bcrypt = require('bcrypt-nodejs');
 const router = express.Router();
 
+var upload = require('../config/multer').noticeUpload;
+var uploadAssignment = require('../config/multer').assignmentUpload;
+var uploadTimeTable = require('../config/multer').timeTableUpload;
+
 const authController = require('./api/auth-controller');
 const authenticate = require("../middlewares/authenticate").authenticate;
+const teacherAuthenticate = require("../middlewares/teacher-authenticate").teacherAuthenticate;
+const schoolAuthenticate = require("../middlewares/school-authenticate").schoolAuthenticate;
 
 const teacherRouter = require('./api/teacher-controller');
 const studentRouter = require('./api/student-controller');
@@ -16,6 +22,8 @@ let Student = require('../model/user').student;
 let School = require('../model/user').school;
 let Teacher = require('../model/user').teacher;
 let Blog = require('../model/user').blog;
+let Notice = require('../model/user').notice;
+let Assignment = require('../model/user').assignment;
 
 // Node Mailer Setup
 let nodemailer = require('nodemailer');
@@ -47,6 +55,102 @@ router.use('/', studentRouter);
 
 
 // Common
+
+router.post('/uploadTimeTable', schoolAuthenticate, (req, res) => {
+    console.log(req);
+    // send file on timeTable field
+    uploadTimeTable(req, res, function (err) {
+        if (err) {
+            // An error occurred when uploading
+            res.json({
+                success: false,
+                message: err.message
+            });
+        } else {
+            console.log(req);
+            var newTimeTable = new timeTable();
+            newTimeTable.class_section = req.body.class;
+            newTimeTable.school = req.decoded.name;
+            newTimeTable.filePath = req.file.path;
+            newTimeTable.save(function (err) {
+                if (err) throw (err);
+
+                res.json({
+                    success: true,
+                    message: "Uploaded Successfully"
+                });
+            });
+        }
+    });
+});
+
+// field for file : notice
+router.post('/uploadNotice', schoolAuthenticate, (req, res) => {
+    upload(req, res, function (err) {
+        if (err) {
+            // An error occurred when uploading
+            res.json({
+                success: false,
+                message: err.message
+            });
+        } else {
+            console.log(req);
+            var newNotice = new Notice();
+            newNotice.topic = req.body.topic;
+            newNotice.target = req.body.target;
+            newNotice.date = req.body.date;
+            newNotice.description = req.body.description;
+            newNotice.filePath = req.file.path;
+            newNotice.school = req.decoded.name;
+            newNotice.save(function (err) {
+                if (err) throw (err);
+                res.json({
+                    success: true,
+                    message: "Uploaded Successfully"
+                });
+            });
+        }
+    });
+});
+
+// field - assignment
+router.post('/uploadAssignment', teacherAuthenticate, function (req, res) {
+    uploadAssignment(req, res, function (err) {
+        if (err) {
+            // An error occurred when uploading
+            res.json({
+                success: false,
+                message: err.message
+            });
+        } else {
+            console.log(req);
+            var newAssignment = new Assignment();
+            newAssignment.topic = req.body.topic;
+            newAssignment.filePath = req.file.path;
+            newAssignment.deadline = req.body.deadline;
+            newAssignment.description = req.body.description;
+            newAssignment.teacherFirstname = req.decoded.firstname;
+            newAssignment.teacherLastname = req.decoded.lastname;
+            newAssignment.school = req.decoded.school;
+            var classarr = [];
+            var ans1 = req.body.class_section;
+            classarr = ans1.split(',');
+            newAssignment.class_section = classarr;
+
+
+            newAssignment.save(function (err) {
+                if (err) throw (err);
+
+                res.json({
+                    success: true,
+                    message: "Uploaded Successfully"
+                });
+            });
+        }
+    });
+});
+
+
 router.get('/blog', function (req, res) {
     Blog.find({}).limit(10).exec(function (err, data) {
         if (err) throw err;
